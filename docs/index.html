@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>คำนวณคาบที่หยุดได้ ม.6</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#f1f5ff;--surface:#ffffff;--ink:#0f1f45;--muted:#5d6e93;--line:#dbe4f7;
+  --accent:#2457d6;--accent-2:#1b3fa0;--accent-soft:#e4ecff;--onaccent:#ffffff;
+  --hero-a:#0e2a73;--hero-b:#2f6bf0;
+  --ok:#157a4c;--ok-bg:#dcf4e7;--warn:#9a5b00;--warn-bg:#fdecc6;--bad:#b3261e;--bad-bg:#fbdcd9;
+  --shadow:0 1px 2px rgba(15,31,69,.06),0 8px 24px rgba(36,87,214,.10);
+  box-sizing:border-box;padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+  --bg:#0a1226;--surface:#121c38;--ink:#e9efff;--muted:#9fb0d6;--line:#25345c;
+  --accent:#7ea2ff;--accent-2:#a9c0ff;--accent-soft:#1a2a55;--onaccent:#0a1226;
+  --hero-a:#0b1a45;--hero-b:#1d4cc2;
+  --ok:#6fd3a0;--ok-bg:#16382a;--warn:#f0b955;--warn-bg:#40300f;--bad:#ff8c84;--bad-bg:#46201d;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}}
+:root[data-theme="dark"]{color-scheme:dark;
+  --bg:#0a1226;--surface:#121c38;--ink:#e9efff;--muted:#9fb0d6;--line:#25345c;
+  --accent:#7ea2ff;--accent-2:#a9c0ff;--accent-soft:#1a2a55;--onaccent:#0a1226;
+  --hero-a:#0b1a45;--hero-b:#1d4cc2;
+  --ok:#6fd3a0;--ok-bg:#16382a;--warn:#f0b955;--warn-bg:#40300f;--bad:#ff8c84;--bad-bg:#46201d;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Thai",system-ui,sans-serif;line-height:1.6}
+
+/* ส่วนหัว */
+.hero{position:relative;overflow:hidden;color:#fff;
+  background:linear-gradient(135deg,var(--hero-a),var(--hero-b));
+  padding:calc(env(safe-area-inset-top,0px) + 32px) 16px 88px}
+.hero::before,.hero::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.08)}
+.hero::before{width:280px;height:280px;right:-80px;top:-120px}
+.hero::after{width:180px;height:180px;left:-60px;bottom:-110px}
+.hero-in{position:relative;max-width:720px;margin:0 auto}
+.eyebrow{display:inline-block;font-size:.78rem;font-weight:600;letter-spacing:.04em;padding:3px 12px;border-radius:99px;background:rgba(255,255,255,.16);margin-bottom:10px}
+h1{font-size:1.9rem;line-height:1.25;margin:0 0 6px;font-weight:700}
+.sub{margin:0;color:rgba(255,255,255,.8);font-size:.95rem}
+
+main{max-width:720px;margin:-60px auto 0;padding:0 16px 48px;position:relative}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}
+.settings{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:end}
+label{display:flex;flex-direction:column;font-size:.82rem;font-weight:500;color:var(--muted);gap:6px}
+input{font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0;transition:border-color .15s,box-shadow .15s}
+input:hover{border-color:var(--accent)}
+input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=number]{width:100%}
+.total{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-radius:12px;color:#fff;background:linear-gradient(135deg,var(--accent-2),var(--accent))}
+:root[data-theme="dark"] .total,.total{--t:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .total{color:#0a1226}}
+:root[data-theme="dark"] .total{color:#0a1226}
+.total span{font-size:.9rem;font-weight:500;opacity:.9}
+.total b{font-size:2.4rem;line-height:1;font-weight:700}
+
+.add{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+.add label:first-child{flex:1 1 200px}
+.add input[type=text]{width:100%}
+.add input[type=number]{width:110px}
+
+button{font:inherit;cursor:pointer;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);padding:10px 16px;transition:transform .1s,background .15s,border-color .15s}
+button:hover{border-color:var(--accent)}
+button:active{transform:scale(.96)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--onaccent);font-weight:600}
+button.primary:hover{background:var(--accent-2);border-color:var(--accent-2)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) button.primary:hover{background:#9bb7ff;border-color:#9bb7ff}}
+
+/* การ์ดวิชา */
+.subj{position:relative;overflow:hidden}
+.subj::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--ok)}
+.subj.warn::before{background:var(--warn)}.subj.bad::before{background:var(--bad)}
+.head{display:flex;justify-content:space-between;gap:8px;align-items:start}
+.head h2{font-size:1.15rem;margin:0;font-weight:600}
+.meta{font-size:.84rem;color:var(--muted)}
+.del{border:none;background:none;color:var(--muted);padding:4px 10px;border-radius:8px}
+.del:hover{background:var(--bad-bg);color:var(--bad);border:none}
+.counter{display:flex;align-items:center;gap:10px;margin:14px 0 12px;flex-wrap:wrap}
+.counter button{width:46px;height:46px;font-size:1.5rem;line-height:1;padding:0;border-radius:50%}
+.counter button:not(.primary){background:var(--accent-soft);border-color:transparent;color:var(--accent)}
+.left{font-size:2.1rem;font-weight:700;line-height:1;color:var(--accent)}
+.left small{font-size:.85rem;font-weight:400;color:var(--muted)}
+.tag{margin-left:auto;font-size:.82rem;font-weight:600;padding:3px 12px;border-radius:99px;background:var(--ok-bg);color:var(--ok)}
+.warn .tag{background:var(--warn-bg);color:var(--warn)}.bad .tag{background:var(--bad-bg);color:var(--bad)}
+.bar{height:10px;background:var(--accent-soft);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);width:0;border-radius:99px;transition:width .35s ease}
+.warn .bar i{background:var(--warn)}.bad .bar i{background:var(--bad)}
+
+.empty{position:fixed;inset:0;z-index:-1;display:grid;place-items:center;text-align:center;color:var(--muted);opacity:.55;padding:24px;pointer-events:none}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.tools+.note{text-align:left;margin-top:12px}
+.note{font-size:.8rem;color:var(--muted);text-align:center;margin-top:24px}
+
+@media (max-width:480px){
+  h1{font-size:1.6rem}
+  .total b{font-size:2rem}
+  .tag{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-in">
+    <span class="eyebrow">ม.6 · คำนวณเวลาเรียน</span>
+    <h1>จำนวนวันหยุด TUN</h1>
+    <p class="sub">by Phakhin Rerngruen</p>
+  </div>
+</header>
+
+<main>
+  <section class="panel settings">
+    <label>จำนวนสัปดาห์ต่อภาคเรียน
+      <input id="weeks" type="number" min="1" max="30" value="20" inputmode="numeric">
+    </label>
+    <label>เปอร์เซ็นต์ที่ขาดได้
+      <input id="pct" type="number" min="1" max="50" value="20" inputmode="numeric">
+    </label>
+    <div class="total"><span id="sumText">คาบที่เหลือรวมทุกวิชา</span><b id="sumLeft">0</b></div>
+  </section>
+
+  <section class="panel">
+    <div class="add">
+      <label>ชื่อวิชา <input id="name" type="text" placeholder="เช่น คณิตศาสตร์"></label>
+      <label>คาบต่อสัปดาห์ <input id="per" type="number" min="1" max="20" value="3" inputmode="numeric"></label>
+      <button class="primary" id="addBtn">เพิ่มวิชา</button>
+    </div>
+  </section>
+
+  <div id="list"></div>
+
+  <section class="panel">
+    <div class="tools">
+      <button id="exportBtn">สำรองข้อมูล</button>
+      <button id="importBtn">นำข้อมูลกลับมา</button>
+      <button id="clearBtn">ล้างข้อมูลทั้งหมด</button>
+      <input id="file" type="file" accept=".json,application/json" hidden>
+    </div>
+    <p class="note" id="status"></p>
+  </section>
+  <p class="note">แอพลิเคชันนี้ยังเป็นเวอร์ชันทดลองหากเกิดข้อผิดพลาดประการใดขออภัยมา ณ ที่นี้ และโปรดแจ้งแก้ไขได้ที่ IG : fxmemain</p>
+</main>
+
+<script>
+(function(){
+  var KEY="absence-calc-v1";
+  var state={weeks:20,pct:20,subjects:[],updated:null,draft:{n:"",p:3}};
+  var memOnly=false;
+
+  // ตรวจและเติมข้อมูลให้ครบ ใช้ทั้งตอนโหลดและตอนนำเข้าไฟล์สำรอง
+  function normalize(p){
+    if(!p||!Array.isArray(p.subjects))return null;
+    return {
+      weeks:p.weeks>0?p.weeks:20,
+      pct:p.pct>0&&p.pct<=50?p.pct:20,
+      updated:p.updated||null,
+      draft:p.draft&&typeof p.draft==="object"?{n:String(p.draft.n||""),p:p.draft.p>0?p.draft.p:3}:{n:"",p:3},
+      subjects:p.subjects.filter(function(x){return x&&x.p>0}).map(function(x){
+        return {n:String(x.n||"วิชา"),p:x.p,a:x.a>0?x.a:0};
+      })
+    };
+  }
+  try{var n0=normalize(JSON.parse(localStorage.getItem(KEY)));if(n0)state=n0;}catch(e){}
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
+
+  function save(){
+    state.updated=new Date().toISOString();
+    try{localStorage.setItem(KEY,JSON.stringify(state));memOnly=false;}catch(e){memOnly=true;}
+    showStatus();
+  }
+  function showStatus(){
+    var el=$("status");
+    if(memOnly){el.textContent="⚠ เบราว์เซอร์นี้ไม่อนุญาตให้บันทึกข้อมูล ข้อมูลจะหายเมื่อปิดหน้า กรุณากดสำรองข้อมูลไว้";return;}
+    el.textContent=state.updated?"บันทึกอัตโนมัติแล้วเมื่อ "+new Date(state.updated).toLocaleString("th-TH",{dateStyle:"medium",timeStyle:"short"}):"ข้อมูลจะถูกบันทึกในเครื่องนี้อัตโนมัติ";
+  }
+  var $=function(id){return document.getElementById(id)};
+  var weeks=$("weeks"),pct=$("pct");
+  weeks.value=state.weeks;pct.value=state.pct;
+  $("name").value=state.draft.n;$("per").value=state.draft.p;
+
+  function maxAbs(sub){
+    var total=sub.p*state.weeks;
+    return {total:total,max:Math.floor(total*state.pct/100+1e-9)};
+  }
+
+  // แปลงอักขระพิเศษทั้งหมด รวมถึง " และ ' เพื่อใช้ใน attribute ได้อย่างปลอดภัย
+  function esc(t){
+    return String(t).replace(/[&<>"']/g,function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  function render(){
+    var list=$("list"),sumLeft=0,html="";
+    if(!state.subjects.length){
+      list.innerHTML='<div class="empty">กรุณากรอกข้อมูลตามตารางเรียนเพื่อเริ่มต้นใช้งาน</div>';
+      $("sumLeft").textContent=0;
+      return;
+    }
+    state.subjects.forEach(function(sub,i){
+      var m=maxAbs(sub),left=m.max-sub.a;
+      sumLeft+=Math.max(left,0);
+      var ratio=m.max>0?sub.a/m.max:(sub.a>0?1:0);
+      var cls=left<0?"bad":(left<=1||ratio>=0.8?"warn":"");
+      var tag=left<0?"เกินกำหนด":(left===0?"ห้ามขาดแล้ว":(cls==="warn"?"ใกล้เต็ม":"ปลอดภัย"));
+      html+='<article class="panel subj '+cls+'">'+
+        '<div class="head"><div><h2>'+esc(sub.n)+'</h2><div class="meta">'+sub.p+' คาบ/สัปดาห์ · ทั้งเทอม '+m.total+' คาบ · ขาดได้สูงสุด '+m.max+' คาบ</div></div>'+
+        '<button class="del" data-del="'+i+'" aria-label="ลบวิชา '+esc(sub.n)+'">ลบ</button></div>'+
+        '<div class="counter"><button data-dec="'+i+'" aria-label="ลดจำนวนคาบที่ขาด">−</button>'+
+        '<button data-inc="'+i+'" class="primary" aria-label="เพิ่มจำนวนคาบที่ขาด">+</button>'+
+        '<div>ขาดแล้ว <b>'+sub.a+'</b> คาบ</div>'+
+        '<div class="left" style="margin-left:8px">'+(left<0?'เกิน '+(-left):left)+' <small>'+(left<0?'คาบ':'คาบที่เหลือ')+'</small></div>'+
+        '<span class="tag">'+tag+'</span></div>'+
+        '<div class="bar"><i style="width:'+Math.min(ratio*100,100)+'%"></i></div></article>';
+    });
+    list.innerHTML=html;
+    $("sumLeft").textContent=sumLeft;
+  }
+
+  $("list").addEventListener("click",function(e){
+    var t=e.target.closest("button");if(!t)return;
+    var s=state.subjects;
+    if(t.dataset.inc!==undefined){s[+t.dataset.inc].a++;}
+    else if(t.dataset.dec!==undefined){var x=s[+t.dataset.dec];if(x.a>0)x.a--;}
+    else if(t.dataset.del!==undefined){if(confirm("ลบวิชา "+s[+t.dataset.del].n+" ?"))s.splice(+t.dataset.del,1);else return;}
+    else return;
+    save();render();
+  });
+
+  function add(){
+    var n=$("name").value.trim(),p=parseInt($("per").value,10);
+    if(!n){$("name").focus();return;}
+    if(!(p>0))p=1;
+    state.subjects.push({n:n,p:p,a:0});
+    $("name").value="";state.draft={n:"",p:p};save();render();$("name").focus();
+  }
+  $("addBtn").addEventListener("click",add);
+  $("name").addEventListener("keydown",function(e){if(e.key==="Enter")add();});
+
+  function setting(){
+    var w=parseInt(weeks.value,10),c=parseInt(pct.value,10);
+    if(w>0)state.weeks=w;
+    if(c>0&&c<=50)state.pct=c;
+    save();render();
+  }
+  weeks.addEventListener("input",setting);
+  pct.addEventListener("input",setting);
+
+  // จำสิ่งที่พิมพ์ค้างไว้ในช่องเพิ่มวิชา
+  function draft(){state.draft={n:$("name").value,p:parseInt($("per").value,10)>0?parseInt($("per").value,10):3};save();}
+  $("name").addEventListener("input",draft);
+  $("per").addEventListener("input",draft);
+
+  // สำรอง / นำกลับมา / ล้างข้อมูล
+  $("exportBtn").addEventListener("click",function(){
+    var d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+    var name="absence-backup-"+d.toISOString().slice(0,10)+".json";
+    var blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+    try{
+      var file=new File([blob],name,{type:"application/json"});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:name}).catch(function(){});return;}
+    }catch(e){}
+    var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
+  });
+  $("importBtn").addEventListener("click",function(){$("file").click();});
+  $("file").addEventListener("change",function(){
+    var f=this.files[0];if(!f)return;
+    var r=new FileReader();
+    r.onload=function(){
+      try{
+        var n=normalize(JSON.parse(r.result));
+        if(!n)throw new Error();
+        if(!confirm("แทนที่ข้อมูลปัจจุบันด้วยไฟล์สำรองนี้?"))return;
+        state=n;weeks.value=state.weeks;pct.value=state.pct;
+        $("name").value=state.draft.n;$("per").value=state.draft.p;
+        save();render();
+      }catch(e){alert("ไฟล์ไม่ถูกต้อง ใช้ได้เฉพาะไฟล์สำรองที่ดาวน์โหลดจากแอปนี้");}
+    };
+    r.readAsText(f);this.value="";
+  });
+  $("clearBtn").addEventListener("click",function(){
+    if(!confirm("ลบวิชาและข้อมูลทั้งหมด? แนะนำให้สำรองข้อมูลก่อน"))return;
+    state={weeks:20,pct:20,subjects:[],updated:null,draft:{n:"",p:3}};
+    weeks.value=20;pct.value=20;$("name").value="";$("per").value=3;
+    save();render();
+  });
+  window.addEventListener("pagehide",save);
+  document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")save();});
+
+  showStatus();
+  render();
+})();
+</script>
+</body>
+</html>
