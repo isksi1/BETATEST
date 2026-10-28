@@ -256,18 +256,33 @@ button.primary:hover{background:var(--accent-2);border-color:var(--accent-2)}
   $("per").addEventListener("input",draft);
 
   // สำรอง / นำกลับมา / ล้างข้อมูล
-  $("exportBtn").addEventListener("click",function(){
-    var d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
-    var name="absence-backup-"+d.toISOString().slice(0,10)+".json";
-    var blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  $("exportBtn").addEventListener("click",async function(){
+  var d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+  var name="absence-backup-"+d.toISOString().slice(0,10)+".json";
+  var text=JSON.stringify(state,null,2);
+
+  // ในแอป Android (Capacitor)
+  var C=window.Capacitor;
+  if(C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.Filesystem&&C.Plugins.Share){
     try{
-      var file=new File([blob],name,{type:"application/json"});
-      if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:name}).catch(function(){});return;}
-    }catch(e){}
-    var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;
-    document.body.appendChild(a);a.click();a.remove();
-    setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
-  });
+      var r=await C.Plugins.Filesystem.writeFile({path:name,data:text,directory:"CACHE",encoding:"utf8"});
+      await C.Plugins.Share.share({title:name,url:r.uri,dialogTitle:"บันทึกไฟล์สำรอง"});
+    }catch(e){
+      if(String(e).toLowerCase().indexOf("cancel")<0)alert("สำรองข้อมูลไม่สำเร็จ: "+e);
+    }
+    return;
+  }
+
+  // บนเว็บเบราว์เซอร์ (โค้ดเดิม)
+  var blob=new Blob([text],{type:"application/json"});
+  try{
+    var file=new File([blob],name,{type:"application/json"});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:name}).catch(function(){});return;}
+  }catch(e){}
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
+});
   $("importBtn").addEventListener("click",function(){$("file").click();});
   $("file").addEventListener("change",function(){
     var f=this.files[0];if(!f)return;
